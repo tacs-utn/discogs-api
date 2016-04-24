@@ -1,4 +1,4 @@
-package example;
+package models;
 
 /**
  * Created by martin on 3/25/16.
