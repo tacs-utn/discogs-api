@@ -16,6 +16,7 @@ import java.util.List;
 
 @Path("/")
 public class MyResource {
+    static Client client = ClientBuilder.newClient(new ClientConfig());
     static ArrayList<SearchResponse> favorites = new ArrayList<SearchResponse>();
 
     @GET
@@ -40,30 +41,30 @@ public class MyResource {
         return Response.status(Response.Status.CREATED).entity(song).build();
     }
 
-//    @PUT
-//    @Path("favorites/{id}")
-//    @Produces(MediaType.APPLICATION_JSON)
-//    @Consumes(MediaType.APPLICATION_JSON)
-//    public Response modifySong(@PathParam("id") int id, Song song) {
-//        for(int i=releases.size()-1;i>=0;i--){
-//            Song tmpSong = releases.get(i);
-//            if(tmpSong.getId()==id){
-//                releases.remove(i);
-//                song.setId(id);
-//                releases.add(song);
-//                return Response.status(Response.Status.OK).entity(song).build();
-//            }
-//        }
-//        String msg = String.format("Song with id: %d not found", id);
-//        return Response.status(Response.Status.NOT_FOUND).entity(new ErrorMsg(msg)).build();
-//    }
+   @PUT
+   @Path("favorites/{id}")
+   @Produces(MediaType.APPLICATION_JSON)
+   @Consumes(MediaType.APPLICATION_JSON)
+   public Response modifySong(@PathParam("id") Long id, SearchResponse song) {
+       for(int i=favorites.size()-1;i>=0;i--){
+           SearchResponse tmpSong = favorites.get(i);
+           if(tmpSong.getId().equals(id)){
+               favorites.remove(i);
+               song.setId(id);
+               favorites.add(song);
+               return Response.status(Response.Status.OK).entity(song).build();
+           }
+       }
+       String msg = String.format("Song with id: %d not found", id);
+       return Response.status(Response.Status.NOT_FOUND).entity(new ErrorMsg(msg)).build();
+   }
 
     @GET
     @Path("favorites/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateSong(@PathParam("id") int id) {
+    public Response getSongById(@PathParam("id") Long id) {
         for(SearchResponse song:favorites){
-            if(song.getId()==id){
+            if(song.getId().equals(id)){
                 return Response.status(Response.Status.OK).entity(song).build();
             }
         }
@@ -74,10 +75,10 @@ public class MyResource {
     @DELETE
     @Path("favorites/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response removeSong(@PathParam("id") int id) {
+    public Response removeSong(@PathParam("id") Long id) {
         for(int i=favorites.size()-1;i>=0;i--){
             SearchResponse tmpSong = favorites.get(i);
-            if(tmpSong.getId()==id){
+            if(tmpSong.getId().equals(id)){
                 favorites.remove(i);
                 return Response.status(Response.Status.OK).build();
             }
@@ -92,8 +93,6 @@ public class MyResource {
     public Response recommendation(@PathParam("artistName") String artistName) {
         String discogsUrl = "https://api.discogs.com/";
         String discogsAuth = "Discogs key=wwqFHdRfHMiLNqSZiVlW, secret=MozvVouTUJsdCMovtkGLadUdAyuPvOUZ";
-
-        Client client = ClientBuilder.newClient(new ClientConfig());
 
         Search search = client.target(discogsUrl)
                 .path("database/search")
@@ -124,7 +123,13 @@ public class MyResource {
             }
         });
 
-        List<Release> topReleases = releases.subList(0,3);
+        List<Release> topReleases;
+        if(releases.size() < 3){
+            topReleases = releases.subList(0, releases.size());
+        } else {
+            topReleases = releases.subList(0, 3);
+        }
+
 
         ArrayList<SearchResponse> topSearches = new ArrayList<SearchResponse>(3);
 
