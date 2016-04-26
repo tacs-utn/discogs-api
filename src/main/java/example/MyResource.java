@@ -20,6 +20,13 @@ public class MyResource {
     static ArrayList<SearchResponse> favorites = new ArrayList<SearchResponse>();
 
     @GET
+    @Path("healthcheck")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response healthcheck() {
+        return Response.ok("Viva Peron !").build();
+    }
+
+    @GET
     @Path("favorites")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getSongByArtistYearQueryString(@QueryParam("artist") String artist) {
